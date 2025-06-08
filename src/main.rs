@@ -88,9 +88,14 @@ impl Default for MyApp {
 impl MyApp {
     fn render_settings_panel(&mut self, ui: &mut egui::Ui) {
         ui.group(|ui| {
+            ui.set_width(ui.available_width());
+            ui.label("Settings");
+            ui.separator();
             
             // First row: Operation mode, encryption algorithm, password input
             ui.horizontal(|ui| {
+                ui.set_width(ui.available_width());
+                
                 // Operation mode selection
                 ui.label("Mode: ");
                 ui.radio_value(&mut self.operation_mode, OperationMode::Encrypt, "Encrypt");
@@ -110,20 +115,28 @@ impl MyApp {
                 
                 ui.separator();
                 
-                // Key input
+                // Key input - fixed width
                 ui.label("Key: ");
-                ui.text_edit_singleline(&mut self.password);
+                ui.add_sized(
+                    [400.0, 20.0],
+                    egui::TextEdit::singleline(&mut self.password)
+                );
             });
             
             // Second row: Max threads, checkboxes
             ui.horizontal(|ui| {
-                // Max threads
+                ui.set_width(ui.available_width());
+                
+                // Max threads - fixed width
                 ui.label("Max Threads: ");
-                ui.add(egui::Slider::new(&mut self.max_threads, 1..=16));
+                ui.add_sized(
+                    [200.0, 20.0],
+                    egui::Slider::new(&mut self.max_threads, 1..=16)
+                );
                 
                 ui.separator();
                 
-                // Checkboxes
+                // Checkboxes - left aligned
                 ui.checkbox(&mut self.encrypt_filename, "Encrypt Filename");
                 ui.checkbox(&mut self.delete_source, "Delete Source");
             });
@@ -131,10 +144,9 @@ impl MyApp {
     }
     
     fn render_file_panel(&mut self, ui: &mut egui::Ui) {
-        ui.horizontal(|ui| {
+        ui.columns(2, |columns| {
             // Left file preview area
-            ui.group(|ui| {
-                ui.set_min_width(300.0);
+            columns[0].group(|ui| {
                 ui.label("Files to Encrypt");
                 ui.separator();
                 
@@ -147,23 +159,24 @@ impl MyApp {
                     }
                 });
                 
-                // File list
-                egui::ScrollArea::vertical()
-                    .id_salt("left_files_scroll")
-                    .max_height(200.0)
-                    .show(ui, |ui| {
-                        for file in &mut self.left_files {
-                            ui.horizontal(|ui| {
-                                ui.checkbox(&mut file.selected, "");
-                                ui.label(&file.name);
-                            });
-                        }
-                    });
+                // File list - 固定高度200像素
+                let (_, file_list_rect) = ui.allocate_space([ui.available_width(), 200.0].into());
+                ui.allocate_ui_at_rect(file_list_rect, |ui| {
+                    egui::ScrollArea::vertical()
+                        .id_salt("left_files_scroll")
+                        .show(ui, |ui| {
+                            for file in &mut self.left_files {
+                                ui.horizontal(|ui| {
+                                    ui.checkbox(&mut file.selected, "");
+                                    ui.label(&file.name);
+                                });
+                            }
+                        });
+                });
             });
             
             // Right file preview area
-            ui.group(|ui| {
-                ui.set_min_width(300.0);
+            columns[1].group(|ui| {
                 ui.label("Files to Decrypt");
                 ui.separator();
                 
@@ -176,18 +189,20 @@ impl MyApp {
                     }
                 });
                 
-                // File list
-                egui::ScrollArea::vertical()
-                    .id_salt("right_files_scroll")
-                    .max_height(200.0)
-                    .show(ui, |ui| {
-                        for file in &mut self.right_files {
-                            ui.horizontal(|ui| {
-                                ui.checkbox(&mut file.selected, "");
-                                ui.label(&file.name);
-                            });
-                        }
-                    });
+                // File list - 固定高度200像素
+                let (_, file_list_rect) = ui.allocate_space([ui.available_width(), 200.0].into());
+                ui.allocate_ui_at_rect(file_list_rect, |ui| {
+                    egui::ScrollArea::vertical()
+                        .id_salt("right_files_scroll")
+                        .show(ui, |ui| {
+                            for file in &mut self.right_files {
+                                ui.horizontal(|ui| {
+                                    ui.checkbox(&mut file.selected, "");
+                                    ui.label(&file.name);
+                                });
+                            }
+                        });
+                });
             });
         });
     }
