@@ -1,5 +1,5 @@
 use eframe::egui;
-use crate::models::{OperationMode, EncryptionAlgorithm, FileItem, AppState};
+use crate::models::{OperationMode, EncryptionAlgorithm, FileItem, AppState, Settings, FileManagerState, ProgressState};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum PanelEvent {
@@ -15,12 +15,7 @@ pub struct SettingsPanel;
 impl SettingsPanel {
     pub fn render(
         ui: &mut egui::Ui,
-        operation_mode: &mut OperationMode,
-        encryption_algorithm: &mut EncryptionAlgorithm,
-        password: &mut String,
-        max_threads: &mut u32,
-        encrypt_filename: &mut bool,
-        delete_source: &mut bool,
+        settings: &mut Settings,
     ) {
         ui.group(|ui| {
             ui.set_width(ui.available_width());
@@ -33,19 +28,19 @@ impl SettingsPanel {
                 
                 // Operation mode selection
                 ui.label("Mode: ");
-                ui.radio_value(operation_mode, OperationMode::Encrypt, "Encrypt");
-                ui.radio_value(operation_mode, OperationMode::Decrypt, "Decrypt");
+                ui.radio_value(&mut settings.operation_mode, OperationMode::Encrypt, "Encrypt");
+                ui.radio_value(&mut settings.operation_mode, OperationMode::Decrypt, "Decrypt");
                 
                 ui.separator();
                 
                 // Encryption algorithm selection
                 ui.label("Algorithm: ");
                 egui::ComboBox::from_label("")
-                    .selected_text(encryption_algorithm.to_string())
+                    .selected_text(settings.encryption_algorithm.to_string())
                     .show_ui(ui, |ui| {
-                        ui.selectable_value(encryption_algorithm, EncryptionAlgorithm::AES256, "AES-256");
-                        ui.selectable_value(encryption_algorithm, EncryptionAlgorithm::ChaCha20, "ChaCha20");
-                        ui.selectable_value(encryption_algorithm, EncryptionAlgorithm::Blowfish, "Blowfish");
+                        ui.selectable_value(&mut settings.encryption_algorithm, EncryptionAlgorithm::AES256, "AES-256");
+                        ui.selectable_value(&mut settings.encryption_algorithm, EncryptionAlgorithm::ChaCha20, "ChaCha20");
+                        ui.selectable_value(&mut settings.encryption_algorithm, EncryptionAlgorithm::Blowfish, "Blowfish");
                     });
                 
                 ui.separator();
@@ -54,7 +49,7 @@ impl SettingsPanel {
                 ui.label("Key: ");
                 ui.add_sized(
                     [400.0, 20.0],
-                    egui::TextEdit::singleline(password)
+                    egui::TextEdit::singleline(&mut settings.password)
                 );
             });
             
@@ -66,14 +61,14 @@ impl SettingsPanel {
                 ui.label("Max Threads: ");
                 ui.add_sized(
                     [200.0, 20.0],
-                    egui::Slider::new(max_threads, 1..=16)
+                    egui::Slider::new(&mut settings.max_threads, 1..=16)
                 );
                 
                 ui.separator();
                 
                 // Checkboxes - left aligned
-                ui.checkbox(encrypt_filename, "Encrypt Filename");
-                ui.checkbox(delete_source, "Delete Source");
+                ui.checkbox(&mut settings.encrypt_filename, "Encrypt Filename");
+                ui.checkbox(&mut settings.delete_source, "Delete Source");
             });
         });
     }
@@ -84,10 +79,7 @@ pub struct FilePanel;
 impl FilePanel {
     pub fn render(
         ui: &mut egui::Ui,
-        left_directory: &mut String,
-        right_directory: &mut String,
-        left_files: &mut Vec<FileItem>,
-        right_files: &mut Vec<FileItem>,
+        file_manager: &mut FileManagerState,
     ) -> Option<PanelEvent> {
         let mut event = None;
         ui.columns(2, |columns| {
@@ -98,7 +90,7 @@ impl FilePanel {
                 
                 // Directory selection
                 ui.horizontal(|ui| {
-                    ui.text_edit_singleline(left_directory);
+                    ui.text_edit_singleline(&mut file_manager.left_directory);
                     if ui.button("Open Directory").clicked() {
                         event = Some(PanelEvent::LoadLeftFiles);
                     }
@@ -110,7 +102,7 @@ impl FilePanel {
                     egui::ScrollArea::vertical()
                         .id_salt("left_files_scroll")
                         .show(ui, |ui| {
-                            for file in left_files.iter_mut() {
+                            for file in file_manager.left_files.iter_mut() {
                                 ui.horizontal(|ui| {
                                     ui.checkbox(&mut file.selected, "");
                                     ui.label(&file.name);
@@ -127,7 +119,7 @@ impl FilePanel {
                 
                 // Directory selection
                 ui.horizontal(|ui| {
-                    ui.text_edit_singleline(right_directory);
+                    ui.text_edit_singleline(&mut file_manager.right_directory);
                     if ui.button("Open Directory").clicked() {
                         event = Some(PanelEvent::LoadRightFiles);
                     }
@@ -139,7 +131,7 @@ impl FilePanel {
                     egui::ScrollArea::vertical()
                         .id_salt("right_files_scroll")
                         .show(ui, |ui| {
-                            for file in right_files.iter_mut() {
+                            for file in file_manager.right_files.iter_mut() {
                                 ui.horizontal(|ui| {
                                     ui.checkbox(&mut file.selected, "");
                                     ui.label(&file.name);
@@ -159,9 +151,7 @@ pub struct ProgressPanel;
 impl ProgressPanel {
     pub fn render(
         ui: &mut egui::Ui,
-        current_progress: f32,
-        total_progress: f32,
-        current_file_name: &str,
+        progress: &ProgressState,
     ) {
         ui.group(|ui| {
             ui.label("Progress");
@@ -170,15 +160,15 @@ impl ProgressPanel {
             // Current file progress
             ui.horizontal(|ui| {
                 ui.label("Current File: ");
-                ui.label(current_file_name);
+                ui.label(&progress.current_file_name);
             });
-            ui.add(egui::ProgressBar::new(current_progress).text("Current Progress"));
+            ui.add(egui::ProgressBar::new(progress.current_progress).text("Current Progress"));
             
             ui.separator();
             
             // Overall progress
             ui.label("Overall Progress: ");
-            ui.add(egui::ProgressBar::new(total_progress).text("Total Progress"));
+            ui.add(egui::ProgressBar::new(progress.total_progress).text("Total Progress"));
         });
     }
 }

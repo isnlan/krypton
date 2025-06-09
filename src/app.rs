@@ -108,21 +108,13 @@ impl eframe::App for KryptonApp {
             // Settings panel
             SettingsPanel::render(
                 ui,
-                &mut self.settings.operation_mode,
-                &mut self.settings.encryption_algorithm,
-                &mut self.settings.password,
-                &mut self.settings.max_threads,
-                &mut self.settings.encrypt_filename,
-                &mut self.settings.delete_source,
+                &mut self.settings,
             );
             
             // File panel
             if let Some(event) = FilePanel::render(
                 ui,
-                &mut self.file_manager.left_directory,
-                &mut self.file_manager.right_directory,
-                &mut self.file_manager.left_files,
-                &mut self.file_manager.right_files,
+                &mut self.file_manager,
             ) {
                 match event {
                     PanelEvent::LoadLeftFiles => self.load_left_files(),
@@ -134,9 +126,7 @@ impl eframe::App for KryptonApp {
             // Progress panel
             ProgressPanel::render(
                 ui,
-                self.progress.current_progress,
-                self.progress.total_progress,
-                &self.progress.current_file_name,
+                &self.progress,
             );
             
             ui.separator();
