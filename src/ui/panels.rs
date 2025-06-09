@@ -50,6 +50,7 @@ impl SettingsPanel {
                 ui.add_sized(
                     [400.0, 20.0],
                     egui::TextEdit::singleline(&mut settings.password)
+                        .frame(true)
                 );
             });
             
@@ -90,7 +91,8 @@ impl FilePanel {
                 
                 // Directory selection
                 ui.horizontal(|ui| {
-                    ui.text_edit_singleline(&mut file_manager.left_directory);
+                    ui.add(egui::TextEdit::singleline(&mut file_manager.left_directory)
+                        .frame(true));
                     if ui.button("Open Directory").clicked() {
                         event = Some(PanelEvent::LoadLeftFiles);
                     }
@@ -119,7 +121,8 @@ impl FilePanel {
                 
                 // Directory selection
                 ui.horizontal(|ui| {
-                    ui.text_edit_singleline(&mut file_manager.right_directory);
+                    ui.add(egui::TextEdit::singleline(&mut file_manager.right_directory)
+                        .frame(true));
                     if ui.button("Open Directory").clicked() {
                         event = Some(PanelEvent::LoadRightFiles);
                     }
