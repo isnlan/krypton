@@ -1,0 +1,175 @@
+use eframe::egui;
+use crate::models::{OperationMode, EncryptionAlgorithm, FileItem, AppState, Settings, FileManagerState, ProgressState, DialogState};
+use crate::core::{FileManager, CryptoEngine};
+use crate::ui::{SettingsPanel, FilePanel, ProgressPanel, ControlPanel, ErrorDialog, CompleteDialog, PanelEvent, DialogEvent};
+
+pub struct KryptonApp {
+    // 应用设置
+    settings: Settings,
+    
+    // 文件管理状态
+    file_manager: FileManagerState,
+    
+    // 进度状态
+    progress: ProgressState,
+    
+    // 应用状态
+    app_state: AppState,
+    
+    // 对话框状态
+    dialog: DialogState,
+}
+
+impl Default for KryptonApp {
+    fn default() -> Self {
+        Self {
+            settings: Settings::default(),
+            file_manager: FileManagerState::default(),
+            progress: ProgressState::default(),
+            app_state: AppState::Idle,
+            dialog: DialogState::default(),
+        }
+    }
+}
+
+impl KryptonApp {
+    pub fn new() -> Self {
+        Self::default()
+    }
+    
+    fn load_left_files(&mut self) {
+        self.file_manager.left_files = FileManager::load_files_from_directory(&self.file_manager.left_directory);
+    }
+    
+    fn load_right_files(&mut self) {
+        self.file_manager.right_files = FileManager::load_encrypted_files_from_directory(&self.file_manager.right_directory);
+    }
+    
+    fn start_operation(&mut self) {
+        self.app_state = AppState::Running;
+        self.progress.current_progress = 0.0;
+        self.progress.total_progress = 0.0;
+        self.progress.current_file_name = "Starting processing...".to_string();
+        
+        // Get selected files based on operation mode
+        let selected_files: Vec<FileItem> = match self.settings.operation_mode {
+            OperationMode::Encrypt => self.file_manager.left_files.iter()
+                .filter(|f| f.selected)
+                .cloned()
+                .collect(),
+            OperationMode::Decrypt => self.file_manager.right_files.iter()
+                .filter(|f| f.selected)
+                .cloned()
+                .collect(),
+        };
+        
+        // Start crypto operation
+        match CryptoEngine::start_operation(
+            &self.settings.operation_mode,
+            &self.settings.encryption_algorithm,
+            &self.settings.password,
+            &selected_files,
+            self.settings.max_threads,
+            self.settings.encrypt_filename,
+            self.settings.delete_source,
+        ) {
+            Ok(_) => {
+                self.dialog.show_complete_dialog = true;
+                self.app_state = AppState::Idle;
+            }
+            Err(error) => {
+                self.dialog.error_message = error;
+                self.dialog.show_error_dialog = true;
+            }
+        }
+    }
+    
+    fn stop_operation(&mut self) {
+        CryptoEngine::stop_operation();
+        self.app_state = AppState::Idle;
+        self.progress.current_progress = 0.0;
+        self.progress.total_progress = 0.0;
+        self.progress.current_file_name = String::new();
+    }
+    
+    fn resume_operation(&mut self) {
+        self.app_state = AppState::Running;
+    }
+    
+    fn skip_current_task(&mut self) {
+        CryptoEngine::skip_current_task();
+        self.progress.current_progress = 0.0;
+    }
+}
+
+impl eframe::App for KryptonApp {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            // Settings panel
+            SettingsPanel::render(
+                ui,
+                &mut self.settings.operation_mode,
+                &mut self.settings.encryption_algorithm,
+                &mut self.settings.password,
+                &mut self.settings.max_threads,
+                &mut self.settings.encrypt_filename,
+                &mut self.settings.delete_source,
+            );
+            
+            // File panel
+            if let Some(event) = FilePanel::render(
+                ui,
+                &mut self.file_manager.left_directory,
+                &mut self.file_manager.right_directory,
+                &mut self.file_manager.left_files,
+                &mut self.file_manager.right_files,
+            ) {
+                match event {
+                    PanelEvent::LoadLeftFiles => self.load_left_files(),
+                    PanelEvent::LoadRightFiles => self.load_right_files(),
+                    _ => {}
+                }
+            }
+            
+            // Progress panel
+            ProgressPanel::render(
+                ui,
+                self.progress.current_progress,
+                self.progress.total_progress,
+                &self.progress.current_file_name,
+            );
+            
+            ui.separator();
+            
+            // Control panel
+            if let Some(event) = ControlPanel::render(
+                ui,
+                &self.app_state,
+            ) {
+                match event {
+                    PanelEvent::StartOperation => self.start_operation(),
+                    PanelEvent::StopOperation => self.stop_operation(),
+                    PanelEvent::ResumeOperation => self.resume_operation(),
+                    _ => {}
+                }
+            }
+        });
+        
+        // Render dialogs
+        if let Some(event) = ErrorDialog::render(
+            ctx,
+            &mut self.dialog.show_error_dialog,
+            &self.dialog.error_message,
+        ) {
+            match event {
+                DialogEvent::SkipCurrentTask => self.skip_current_task(),
+                DialogEvent::StopAllOperations => self.stop_operation(),
+            }
+        }
+        
+        CompleteDialog::render(
+            ctx,
+            &mut self.dialog.show_complete_dialog,
+        );
+    }
+} 
