@@ -19,8 +19,6 @@ impl SettingsPanel {
     ) {
         ui.group(|ui| {
             ui.set_width(ui.available_width());
-            ui.label("Settings");
-            ui.separator();
             
             // First row: Operation mode, encryption algorithm, password input
             ui.horizontal(|ui| {
