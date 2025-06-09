@@ -81,26 +81,29 @@ impl FilePanel {
         file_manager: &mut FileManagerState,
     ) -> Option<PanelEvent> {
         let mut event = None;
-        ui.columns(2, |columns| {
-            // Left file preview area
-            columns[0].group(|ui| {
-                ui.label("Files to Encrypt");
-                ui.separator();
-                
-                // Directory selection
-                ui.horizontal(|ui| {
-                    ui.add(egui::TextEdit::singleline(&mut file_manager.left_directory)
-                        .frame(true));
-                    if ui.button("Open Directory").clicked() {
-                        event = Some(PanelEvent::LoadLeftFiles);
-                    }
-                });
-                
-                // File list - fixed height 200 pixels
-                let (_, file_list_rect) = ui.allocate_space([ui.available_width(), 200.0].into());
-                ui.allocate_ui_at_rect(file_list_rect, |ui| {
+        
+        // Wrap entire FilePanel in a group with fixed height of 300 pixels
+        ui.group(|ui| {
+            ui.set_height(400.0);
+            ui.columns(2, |columns| {
+                // Left file preview area
+                columns[0].group(|ui| {
+                    ui.label("Files to Encrypt");
+                    ui.separator();
+                    
+                    // Directory selection
+                    ui.horizontal(|ui| {
+                        ui.add(egui::TextEdit::singleline(&mut file_manager.left_directory)
+                            .frame(true));
+                        if ui.button("Open Directory").clicked() {
+                            event = Some(PanelEvent::LoadLeftFiles);
+                        }
+                    });
+                    
+                    // File list - occupy remaining height
                     egui::ScrollArea::vertical()
                         .id_salt("left_files_scroll")
+                        .auto_shrink([false, false])
                         .show(ui, |ui| {
                             for file in file_manager.left_files.iter_mut() {
                                 ui.horizontal(|ui| {
@@ -110,27 +113,25 @@ impl FilePanel {
                             }
                         });
                 });
-            });
-            
-            // Right file preview area
-            columns[1].group(|ui| {
-                ui.label("Files to Decrypt");
-                ui.separator();
                 
-                // Directory selection
-                ui.horizontal(|ui| {
-                    ui.add(egui::TextEdit::singleline(&mut file_manager.right_directory)
-                        .frame(true));
-                    if ui.button("Open Directory").clicked() {
-                        event = Some(PanelEvent::LoadRightFiles);
-                    }
-                });
-                
-                // File list - fixed height 200 pixels
-                let (_, file_list_rect) = ui.allocate_space([ui.available_width(), 200.0].into());
-                ui.allocate_ui_at_rect(file_list_rect, |ui| {
+                // Right file preview area
+                columns[1].group(|ui| {
+                    ui.label("Files to Decrypt");
+                    ui.separator();
+                    
+                    // Directory selection
+                    ui.horizontal(|ui| {
+                        ui.add(egui::TextEdit::singleline(&mut file_manager.right_directory)
+                            .frame(true));
+                        if ui.button("Open Directory").clicked() {
+                            event = Some(PanelEvent::LoadRightFiles);
+                        }
+                    });
+                    
+                    // File list - occupy remaining height
                     egui::ScrollArea::vertical()
                         .id_salt("right_files_scroll")
+                        .auto_shrink([false, false])
                         .show(ui, |ui| {
                             for file in file_manager.right_files.iter_mut() {
                                 ui.horizontal(|ui| {
