@@ -11,6 +11,18 @@ impl FileManager {
             return Vec::new();
         }
 
+        // 规范化路径
+        let path = std::path::Path::new(directory);
+        if !path.exists() {
+            eprintln!("目录 '{}' 不存在", directory);
+            return Vec::new();
+        }
+        
+        if !path.is_dir() {
+            eprintln!("路径 '{}' 不是一个目录", directory);
+            return Vec::new();
+        }
+        
         // 尝试读取目录内容
         match fs::read_dir(directory) {
             Ok(entries) => {
@@ -53,6 +65,18 @@ impl FileManager {
     pub fn load_encrypted_files_from_directory(directory: &str) -> Vec<FileItem> {
         // 检查目录路径是否为空
         if directory.is_empty() {
+            return Vec::new();
+        }
+        
+        // 规范化路径
+        let path = std::path::Path::new(directory);
+        if !path.exists() {
+            eprintln!("目录 '{}' 不存在", directory);
+            return Vec::new();
+        }
+        
+        if !path.is_dir() {
+            eprintln!("路径 '{}' 不是一个目录", directory);
             return Vec::new();
         }
         
