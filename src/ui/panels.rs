@@ -134,7 +134,7 @@ impl FilePanel {
                         });
                         
                         // File list - occupy remaining height
-                        let remaining_height = (ui.available_height() - 10.0).max(200.0); // 确保最小高度
+                        let remaining_height = (ui.available_height() - 10.0).max(400.0); // 确保最小高度
                         ui.group(|ui| {
                             egui::ScrollArea::vertical()
                                 .id_salt("left_files_scroll")
@@ -203,7 +203,7 @@ impl FilePanel {
                         });
                         
                         // File list - occupy remaining height
-                        let remaining_height = (ui.available_height() - 10.0).max(200.0); // 确保最小高度
+                        let remaining_height = (ui.available_height() - 10.0).max(400.0); // 确保最小高度
                         ui.group(|ui| {
                             egui::ScrollArea::vertical()
                                 .id_salt("right_files_scroll")
