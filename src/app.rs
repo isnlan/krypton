@@ -2,6 +2,7 @@ use eframe::egui;
 use crate::models::{OperationMode, EncryptionAlgorithm, FileItem, AppState, Settings, FileManagerState, ProgressState, DialogState};
 use crate::core::{FileManager, CryptoEngine};
 use crate::ui::{SettingsPanel, FilePanel, ProgressPanel, ControlPanel, ErrorDialog, CompleteDialog, PanelEvent, DialogEvent};
+use rfd::FileDialog;
 
 pub struct KryptonApp {
     // 应用设置
@@ -100,6 +101,26 @@ impl KryptonApp {
         CryptoEngine::skip_current_task();
         self.progress.current_progress = 0.0;
     }
+    
+    fn select_left_directory(&mut self) {
+        if let Some(path) = FileDialog::new()
+            .set_title("Select Directory for Encryption")
+            .pick_folder()
+        {
+            self.file_manager.left_directory = path.to_string_lossy().to_string();
+            self.load_left_files();
+        }
+    }
+    
+    fn select_right_directory(&mut self) {
+        if let Some(path) = FileDialog::new()
+            .set_title("Select Directory for Decryption")
+            .pick_folder()
+        {
+            self.file_manager.right_directory = path.to_string_lossy().to_string();
+            self.load_right_files();
+        }
+    }
 }
 
 impl eframe::App for KryptonApp {
@@ -110,6 +131,9 @@ impl eframe::App for KryptonApp {
                 ui,
                 &mut self.settings,
             );
+
+            // ui.separator();
+
             
             // File panel
             if let Some(event) = FilePanel::render(
@@ -119,6 +143,8 @@ impl eframe::App for KryptonApp {
                 match event {
                     PanelEvent::LoadLeftFiles => self.load_left_files(),
                     PanelEvent::LoadRightFiles => self.load_right_files(),
+                    PanelEvent::SelectLeftDirectory => self.select_left_directory(),
+                    PanelEvent::SelectRightDirectory => self.select_right_directory(),
                     _ => {}
                 }
             }
