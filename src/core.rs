@@ -1,43 +1,101 @@
 use crate::models::{FileItem, OperationMode, EncryptionAlgorithm};
 use std::path::PathBuf;
+use std::fs;
 
 pub struct FileManager;
 
 impl FileManager {
     pub fn load_files_from_directory(directory: &str) -> Vec<FileItem> {
-        // 实际实现中应该读取目录下的文件
-        // 这里仅为演示目的提供模拟数据
+        // 检查目录路径是否为空
         if directory.is_empty() {
             return Vec::new();
         }
 
-        
-        
-        // 模拟文件加载
-        vec![
-            FileItem::new(
-                PathBuf::from("document1.txt"),
-                "document1.txt".to_string(),
-            ),
-            FileItem::new(
-                PathBuf::from("image.jpg"),
-                "image.jpg".to_string(),
-            ),
-        ]
+        // 尝试读取目录内容
+        match fs::read_dir(directory) {
+            Ok(entries) => {
+                let mut files = Vec::new();
+                
+                for entry in entries {
+                    match entry {
+                        Ok(entry) => {
+                            let path = entry.path();
+                            
+                            // 只处理文件，跳过目录
+                            if path.is_file() {
+                                if let Some(file_name) = path.file_name() {
+                                    if let Some(name_str) = file_name.to_str() {
+                                        files.push(FileItem::new(
+                                            path.clone(),
+                                            name_str.to_string(),
+                                        ));
+                                    }
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            eprintln!("读取目录项时出错: {}", e);
+                        }
+                    }
+                }
+                
+                // 按文件名排序
+                files.sort_by(|a, b| a.name.cmp(&b.name));
+                files
+            }
+            Err(e) => {
+                eprintln!("读取目录 '{}' 时出错: {}", directory, e);
+                Vec::new()
+            }
+        }
     }
     
     pub fn load_encrypted_files_from_directory(directory: &str) -> Vec<FileItem> {
+        // 检查目录路径是否为空
         if directory.is_empty() {
             return Vec::new();
         }
         
-        // 模拟加密文件加载
-        vec![
-            FileItem::new(
-                PathBuf::from("encrypted_file.enc"),
-                "encrypted_file.enc".to_string(),
-            ),
-        ]
+        // 尝试读取目录内容，筛选加密文件
+        match fs::read_dir(directory) {
+            Ok(entries) => {
+                let mut files = Vec::new();
+                
+                for entry in entries {
+                    match entry {
+                        Ok(entry) => {
+                            let path = entry.path();
+                            
+                            // 只处理文件，跳过目录
+                            if path.is_file() {
+                                if let Some(file_name) = path.file_name() {
+                                    if let Some(name_str) = file_name.to_str() {
+                                        // 筛选加密文件（以 .enc 结尾）
+                                        if name_str.ends_with(".enc") {
+                                            files.push(FileItem::new(
+                                                path.clone(),
+                                                name_str.to_string(),
+                                            ));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            eprintln!("读取目录项时出错: {}", e);
+                        }
+                    }
+                }
+                
+                // 按文件名排序
+                files.sort_by(|a, b| a.name.cmp(&b.name));
+                files
+            }
+            Err(e) => {
+                eprintln!("读取目录 '{}' 时出错: {}", directory, e);
+                Vec::new()
+            }
+        }
     }
 }
 

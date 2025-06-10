@@ -107,6 +107,7 @@ impl FilePanel {
                         egui::ScrollArea::vertical()
                             .id_salt("left_files_scroll")
                             .auto_shrink([false, false])
+                            .max_height(ui.available_height())
                             .show(ui, |ui| {
                                 for file in file_manager.left_files.iter_mut() {
                                     ui.horizontal(|ui| {
@@ -142,6 +143,7 @@ impl FilePanel {
                         egui::ScrollArea::vertical()
                             .id_salt("right_files_scroll")
                             .auto_shrink([false, false])
+                            .max_height(ui.available_height())
                             .show(ui, |ui| {
                                 for file in file_manager.right_files.iter_mut() {
                                     ui.horizontal(|ui| {
