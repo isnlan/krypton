@@ -43,7 +43,7 @@ impl KryptonApp {
     }
     
     fn load_right_files(&mut self) {
-        self.file_manager.right_files = FileManager::load_encrypted_files_from_directory(&self.file_manager.right_directory);
+        self.file_manager.right_files = FileManager::load_encrypted_files_from_directory(&self.file_manager.right_directory, &self.settings.file_extension);
     }
     
     fn start_operation(&mut self) {
@@ -139,6 +139,7 @@ impl eframe::App for KryptonApp {
             if let Some(event) = FilePanel::render(
                 ui,
                 &mut self.file_manager,
+                &self.settings,
             ) {
                 match event {
                     PanelEvent::LoadLeftFiles => self.load_left_files(),

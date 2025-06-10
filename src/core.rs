@@ -62,7 +62,7 @@ impl FileManager {
         }
     }
     
-    pub fn load_encrypted_files_from_directory(directory: &str) -> Vec<FileItem> {
+    pub fn load_encrypted_files_from_directory(directory: &str, file_extension: &str) -> Vec<FileItem> {
         // 检查目录路径是否为空
         if directory.is_empty() {
             return Vec::new();
@@ -94,8 +94,9 @@ impl FileManager {
                             if path.is_file() {
                                 if let Some(file_name) = path.file_name() {
                                     if let Some(name_str) = file_name.to_str() {
-                                        // 筛选加密文件（以 .enc 结尾）
-                                        if name_str.ends_with(".enc") {
+                                        // 筛选加密文件（以指定后缀结尾）
+                                        let extension_with_dot = format!(".{}", file_extension);
+                                        if name_str.ends_with(&extension_with_dot) {
                                             files.push(FileItem::new(
                                                 path.clone(),
                                                 name_str.to_string(),

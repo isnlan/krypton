@@ -36,6 +36,7 @@ pub struct Settings {
     pub max_threads: u32,
     pub encrypt_filename: bool,
     pub delete_source: bool,
+    pub file_extension: String,
 }
 
 /// 文件管理结构体
@@ -72,6 +73,7 @@ impl Default for Settings {
             max_threads: 1,
             encrypt_filename: true,
             delete_source: true,
+            file_extension: "enc".to_string(),
         }
     }
 }

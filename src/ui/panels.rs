@@ -53,7 +53,7 @@ impl SettingsPanel {
             );
         });
         
-        // Second row: Max threads, checkboxes
+        // Second row: Max threads, file extension, checkboxes
         ui.horizontal(|ui| {
             ui.set_width(ui.available_width());
             
@@ -62,6 +62,17 @@ impl SettingsPanel {
             ui.add_sized(
                 [200.0, 20.0],
                 egui::Slider::new(&mut settings.max_threads, 1..=16)
+            );
+            
+            ui.separator();
+            
+            // File extension input - fixed width
+            ui.label("File Extension: ");
+            ui.add_sized(
+                [100.0, 20.0],
+                egui::TextEdit::singleline(&mut settings.file_extension)
+                    .frame(true)
+                    .hint_text("enc")
             );
             
             ui.separator();
@@ -79,6 +90,7 @@ impl FilePanel {
     pub fn render(
         ui: &mut egui::Ui,
         file_manager: &mut FileManagerState,
+        settings: &Settings,
     ) -> Option<PanelEvent> {
         let mut event = None;
         
@@ -209,7 +221,7 @@ impl FilePanel {
                                     // 如果没有文件，显示提示信息
                                     if file_manager.right_files.is_empty() && !file_manager.right_directory.is_empty() {
                                         ui.centered_and_justified(|ui| {
-                                            ui.label("No .enc files found in this directory");
+                                            ui.label(format!("No .{} files found in this directory", settings.file_extension));
                                         });
                                     } else if file_manager.right_files.is_empty() {
                                         ui.centered_and_justified(|ui| {
