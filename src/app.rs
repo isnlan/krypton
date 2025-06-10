@@ -43,7 +43,7 @@ impl KryptonApp {
     }
     
     fn load_right_files(&mut self) {
-        self.file_manager.right_files = FileManager::load_encrypted_files_from_directory(&self.file_manager.right_directory, &self.settings.file_extension);
+        self.file_manager.right_files = FileManager::load_encrypted_files_from_directory(&self.file_manager.right_directory, &self.settings);
     }
     
     fn start_operation(&mut self) {
@@ -66,13 +66,8 @@ impl KryptonApp {
         
         // Start crypto operation
         match CryptoEngine::start_operation(
-            &self.settings.operation_mode,
-            &self.settings.encryption_algorithm,
-            &self.settings.password,
+            &self.settings,
             &selected_files,
-            self.settings.max_threads,
-            self.settings.encrypt_filename,
-            self.settings.delete_source,
         ) {
             Ok(_) => {
                 self.dialog.show_complete_dialog = true;

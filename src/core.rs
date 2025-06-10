@@ -1,4 +1,4 @@
-use crate::models::{FileItem, OperationMode, EncryptionAlgorithm};
+use crate::models::{FileItem, Settings};
 use std::path::PathBuf;
 use std::fs;
 
@@ -62,7 +62,7 @@ impl FileManager {
         }
     }
     
-    pub fn load_encrypted_files_from_directory(directory: &str, file_extension: &str) -> Vec<FileItem> {
+    pub fn load_encrypted_files_from_directory(directory: &str, settings: &Settings) -> Vec<FileItem> {
         // 检查目录路径是否为空
         if directory.is_empty() {
             return Vec::new();
@@ -95,7 +95,7 @@ impl FileManager {
                                 if let Some(file_name) = path.file_name() {
                                     if let Some(name_str) = file_name.to_str() {
                                         // 筛选加密文件（以指定后缀结尾）
-                                        let extension_with_dot = format!(".{}", file_extension);
+                                        let extension_with_dot = format!(".{}", settings.file_extension);
                                         if name_str.ends_with(&extension_with_dot) {
                                             files.push(FileItem::new(
                                                 path.clone(),
@@ -128,13 +128,8 @@ pub struct CryptoEngine;
 
 impl CryptoEngine {
     pub fn start_operation(
-        _mode: &OperationMode,
-        _algorithm: &EncryptionAlgorithm,
-        _password: &str,
+        _settings: &Settings,
         _files: &[FileItem],
-        _max_threads: u32,
-        _encrypt_filename: bool,
-        _delete_source: bool,
     ) -> Result<(), String> {
         // 实际的加密/解密逻辑应该在这里实现
         // 目前返回演示错误
