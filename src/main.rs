@@ -1,5 +1,6 @@
 mod models;
 mod core;
+mod crypto;
 mod ui;
 mod app;
 

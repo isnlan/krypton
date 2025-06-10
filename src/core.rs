@@ -1,5 +1,4 @@
 use crate::models::{FileItem, Settings};
-use std::path::PathBuf;
 use std::fs;
 
 pub struct FileManager;
@@ -121,26 +120,5 @@ impl FileManager {
                 Vec::new()
             }
         }
-    }
-}
-
-pub struct CryptoEngine;
-
-impl CryptoEngine {
-    pub fn start_operation(
-        _settings: &Settings,
-        _files: &[FileItem],
-    ) -> Result<(), String> {
-        // 实际的加密/解密逻辑应该在这里实现
-        // 目前返回演示错误
-        Err("Demo error: Unable to access file".to_string())
-    }
-    
-    pub fn stop_operation() {
-        // 停止操作的逻辑
-    }
-    
-    pub fn skip_current_task() {
-        // 跳过当前任务的逻辑
     }
 } 
