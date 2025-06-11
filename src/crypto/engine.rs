@@ -20,7 +20,7 @@ impl CryptoEngine {
     ) -> Result<(), String> {
         // 验证密码不为空
         if settings.password.is_empty() {
-            return Err("密码不能为空".to_string());
+            return Err("Password cannot be empty".to_string());
         }
         
         // 筛选已选中的文件
@@ -29,7 +29,7 @@ impl CryptoEngine {
             .collect();
             
         if selected_files.is_empty() {
-            return Err("没有选中的文件".to_string());
+            return Err("No files selected".to_string());
         }
         
         // 根据是否启用多线程决定处理方式
@@ -85,23 +85,23 @@ impl CryptoEngine {
         
         // 打开输入文件
         let input_file = File::open(input_path)
-            .map_err(|e| format!("无法打开文件 '{}': {}", file.name, e))?;
+            .map_err(|e| format!("Failed to open file '{}': {}", file.name, e))?;
         let mut reader = BufReader::new(input_file);
         
         // 创建输出文件
         let output_file = File::create(&output_path)
-            .map_err(|e| format!("无法创建输出文件: {}", e))?;
+            .map_err(|e| format!("Failed to create output file: {}", e))?;
         let mut writer = BufWriter::new(output_file);
         
         // 使用策略模式进行加密
         let crypto_provider = create_crypto_provider(&settings.encryption_algorithm);
         crypto_provider.encrypt_stream(&settings.password, &mut reader, &mut writer)
-            .map_err(|e| format!("加密文件 '{}' 失败: {}", file.name, e))?;
+            .map_err(|e| format!("Failed to encrypt file '{}': {}", file.name, e))?;
         
         // 如果设置删除源文件
         if settings.delete_source {
             fs::remove_file(input_path)
-                .map_err(|e| format!("删除源文件失败: {}", e))?;
+                .map_err(|e| format!("Failed to delete source file: {}", e))?;
         }
         
         Ok(())
@@ -114,23 +114,23 @@ impl CryptoEngine {
         
         // 打开输入文件
         let input_file = File::open(input_path)
-            .map_err(|e| format!("无法打开文件 '{}': {}", file.name, e))?;
+            .map_err(|e| format!("Failed to open file '{}': {}", file.name, e))?;
         let mut reader = BufReader::new(input_file);
         
         // 创建输出文件
         let output_file = File::create(&output_path)
-            .map_err(|e| format!("无法创建输出文件: {}", e))?;
+            .map_err(|e| format!("Failed to create output file: {}", e))?;
         let mut writer = BufWriter::new(output_file);
         
         // 使用策略模式进行解密
         let crypto_provider = create_crypto_provider(&settings.encryption_algorithm);
         crypto_provider.decrypt_stream(&settings.password, &mut reader, &mut writer)
-            .map_err(|e| format!("解密文件 '{}' 失败: {}", file.name, e))?;
+            .map_err(|e| format!("Failed to decrypt file '{}': {}", file.name, e))?;
         
         // 如果设置删除源文件
         if settings.delete_source {
             fs::remove_file(input_path)
-                .map_err(|e| format!("删除源文件失败: {}", e))?;
+                .map_err(|e| format!("Failed to delete source file: {}", e))?;
         }
         
         Ok(())
@@ -171,7 +171,7 @@ impl CryptoEngine {
     /// 获取加密算法信息
     pub fn get_algorithm_info(settings: &Settings) -> String {
         let provider = create_crypto_provider(&settings.encryption_algorithm);
-        format!("算法: {}, 分块大小: {} MB", 
+        format!("Algorithm: {}, Chunk size: {} MB", 
                 provider.algorithm_name(), 
                 provider.chunk_size() / (1024 * 1024))
     }
@@ -183,7 +183,7 @@ impl CryptoEngine {
             .map_err(|e| CryptoError::IoError(e))?;
         
         if file_data.len() < 32 {
-            return Ok(false); // 文件太小，不可能是有效的加密文件
+            return Ok(false); // File too small to be a valid encrypted file
         }
         
         provider.verify_password(&settings.password, &file_data[0..64])

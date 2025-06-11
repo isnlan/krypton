@@ -65,7 +65,7 @@ This pattern ensures thread-safety and prevents the common Rust error: "cannot b
 
 ## Features
 
-- File encryption/decryption with multiple algorithms (AES-256, ChaCha20, Blowfish)
+- File encryption/decryption with multiple algorithms (AES-256, ChaCha20)
 - Multi-threaded processing
 - Progress tracking
 - Error handling with user interaction
