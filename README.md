@@ -181,9 +181,9 @@ cargo clippy
 
 ## 📞 联系方式
 
-- 项目主页：[GitHub Repository](https://github.com/yourusername/krypton)
-- 问题反馈：[Issues](https://github.com/yourusername/krypton/issues)
-- 邮箱：your.email@example.com
+- 项目主页：[GitHub Repository](https://github.com/isnlan/krypton)
+- 问题反馈：[Issues](https://github.com/isnlan/krypton/issues)
+- 邮箱：snlansky@gmail.com
 
 ---
 
