@@ -68,10 +68,6 @@ pub fn create_crypto_provider(algorithm: &EncryptionAlgorithm) -> CryptoProvider
     match algorithm {
         EncryptionAlgorithm::AES256 => CryptoProviderEnum::Aes(aes::AesCryptoProvider::new()),
         EncryptionAlgorithm::ChaCha20 => CryptoProviderEnum::ChaCha20(chacha20::ChaCha20CryptoProvider::new()),
-        EncryptionAlgorithm::Blowfish => {
-            // 暂时返回AES作为占位符
-            CryptoProviderEnum::Aes(aes::AesCryptoProvider::new())
-        }
     }
 }
 

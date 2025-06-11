@@ -39,7 +39,6 @@ impl SettingsPanel {
                 .show_ui(ui, |ui| {
                     ui.selectable_value(&mut settings.encryption_algorithm, EncryptionAlgorithm::AES256, "AES-256");
                     ui.selectable_value(&mut settings.encryption_algorithm, EncryptionAlgorithm::ChaCha20, "ChaCha20");
-                    ui.selectable_value(&mut settings.encryption_algorithm, EncryptionAlgorithm::Blowfish, "Blowfish");
                 });
             
             ui.separator();

@@ -10,7 +10,6 @@ pub enum OperationMode {
 pub enum EncryptionAlgorithm {
     AES256,
     ChaCha20,
-    Blowfish,
 }
 
 #[derive(Debug, Clone)]
@@ -124,7 +123,6 @@ impl std::fmt::Display for EncryptionAlgorithm {
         match self {
             EncryptionAlgorithm::AES256 => write!(f, "AES-256"),
             EncryptionAlgorithm::ChaCha20 => write!(f, "ChaCha20"),
-            EncryptionAlgorithm::Blowfish => write!(f, "Blowfish"),
         }
     }
 } 
