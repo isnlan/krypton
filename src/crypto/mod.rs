@@ -3,7 +3,7 @@ pub mod aes;
 pub mod chacha20;
 pub mod engine;
 
-pub use traits::{CryptoProvider, CryptoError, CryptoResult};
+pub use traits::{CryptoProvider, CryptoResult};
 pub use engine::CryptoEngine;
 
 use crate::models::EncryptionAlgorithm;

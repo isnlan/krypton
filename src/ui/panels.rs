@@ -1,5 +1,5 @@
 use eframe::egui;
-use crate::models::{OperationMode, EncryptionAlgorithm, FileItem, AppState, Settings, FileManagerState, ProgressState};
+use crate::models::{OperationMode, EncryptionAlgorithm, AppState, Settings, FileManagerState, ProgressState};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum PanelEvent {
@@ -29,9 +29,9 @@ impl SettingsPanel {
             ui.label("Mode: ");
             ui.radio_value(&mut settings.operation_mode, OperationMode::Encrypt, "Encrypt");
             ui.radio_value(&mut settings.operation_mode, OperationMode::Decrypt, "Decrypt");
-            
+
             ui.separator();
-            
+
             // Encryption algorithm selection
             ui.label("Algorithm: ");
             egui::ComboBox::from_label("")
@@ -40,11 +40,11 @@ impl SettingsPanel {
                     ui.selectable_value(&mut settings.encryption_algorithm, EncryptionAlgorithm::AES256, "AES-256");
                     ui.selectable_value(&mut settings.encryption_algorithm, EncryptionAlgorithm::ChaCha20, "ChaCha20");
                 });
-            
+
             ui.separator();
-            
+
             // Key input - fixed width
-            ui.label("Key: ");
+            ui.label("Password: ");
             ui.add_sized(
                 [400.0, 20.0],
                 egui::TextEdit::singleline(&mut settings.password)
@@ -62,9 +62,9 @@ impl SettingsPanel {
                 [200.0, 20.0],
                 egui::Slider::new(&mut settings.max_threads, 1..=16)
             );
-            
+
             ui.separator();
-            
+
             // File extension input - fixed width
             ui.label("File Extension: ");
             ui.add_sized(
@@ -73,9 +73,9 @@ impl SettingsPanel {
                     .frame(true)
                     .hint_text("enc")
             );
-            
+
             ui.separator();
-            
+
             // Checkboxes - left aligned
             ui.checkbox(&mut settings.encrypt_filename, "Encrypt Filename");
             ui.checkbox(&mut settings.delete_source, "Delete Source");
@@ -122,10 +122,10 @@ impl FilePanel {
                                 event = Some(PanelEvent::LoadLeftFiles);
                             }
                             
-                            if ui.button("Open Directory").clicked() {
+                            if ui.button("Browse").clicked() {
                                 event = Some(PanelEvent::SelectLeftDirectory);
                             }
-                            
+
                             // 添加刷新按钮
                             if ui.button("Refresh").clicked() && !file_manager.left_directory.is_empty() {
                                 event = Some(PanelEvent::LoadLeftFiles);
@@ -191,10 +191,10 @@ impl FilePanel {
                                 event = Some(PanelEvent::LoadRightFiles);
                             }
                             
-                            if ui.button("Open Directory").clicked() {
+                            if ui.button("Browse").clicked() {
                                 event = Some(PanelEvent::SelectRightDirectory);
                             }
-                            
+
                             // 添加刷新按钮
                             if ui.button("Refresh").clicked() && !file_manager.right_directory.is_empty() {
                                 event = Some(PanelEvent::LoadRightFiles);
@@ -248,16 +248,16 @@ impl ProgressPanel {
         ui.group(|ui| {
             ui.label("Progress");
             ui.separator();
-            
+
             // Current file progress
             ui.horizontal(|ui| {
                 ui.label("Current File: ");
                 ui.label(&progress.current_file_name);
             });
             ui.add(egui::ProgressBar::new(progress.current_progress).text("Current Progress"));
-            
+
             ui.separator();
-            
+
             // Overall progress
             ui.label("Overall Progress: ");
             ui.add(egui::ProgressBar::new(progress.total_progress).text("Total Progress"));
@@ -277,7 +277,7 @@ impl ControlPanel {
             if ui.button("Exit").clicked() {
                 std::process::exit(0);
             }
-            
+
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 match app_state {
                     AppState::Idle => {

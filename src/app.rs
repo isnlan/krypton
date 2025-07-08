@@ -1,5 +1,5 @@
 use eframe::egui;
-use crate::models::{OperationMode, EncryptionAlgorithm, FileItem, AppState, Settings, FileManagerState, ProgressState, DialogState};
+use crate::models::{OperationMode, FileItem, AppState, Settings, FileManagerState, ProgressState, DialogState};
 use crate::core::FileManager;
 use crate::crypto::CryptoEngine;
 use crate::ui::{SettingsPanel, FilePanel, ProgressPanel, ControlPanel, ErrorDialog, CompleteDialog, PanelEvent, DialogEvent};

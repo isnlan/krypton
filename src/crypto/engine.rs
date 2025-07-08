@@ -1,6 +1,6 @@
 use crate::models::{FileItem, Settings, OperationMode};
 use super::traits::{CryptoProvider, CryptoResult, CryptoError};
-use super::{create_crypto_provider, CryptoProviderEnum};
+use super::create_crypto_provider;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
 use std::path::PathBuf;
@@ -22,12 +22,12 @@ impl CryptoEngine {
         if settings.password.is_empty() {
             return Err("Password cannot be empty".to_string());
         }
-        
+
         // 筛选已选中的文件
         let selected_files: Vec<&FileItem> = files.iter()
             .filter(|file| file.selected)
             .collect();
-            
+
         if selected_files.is_empty() {
             return Err("No files selected".to_string());
         }
@@ -87,17 +87,17 @@ impl CryptoEngine {
         let input_file = File::open(input_path)
             .map_err(|e| format!("Failed to open file '{}': {}", file.name, e))?;
         let mut reader = BufReader::new(input_file);
-        
+
         // 创建输出文件
         let output_file = File::create(&output_path)
             .map_err(|e| format!("Failed to create output file: {}", e))?;
         let mut writer = BufWriter::new(output_file);
-        
+
         // 使用策略模式进行加密
         let crypto_provider = create_crypto_provider(&settings.encryption_algorithm);
         crypto_provider.encrypt_stream(&settings.password, &mut reader, &mut writer)
             .map_err(|e| format!("Failed to encrypt file '{}': {}", file.name, e))?;
-        
+
         // 如果设置删除源文件
         if settings.delete_source {
             fs::remove_file(input_path)
@@ -116,17 +116,17 @@ impl CryptoEngine {
         let input_file = File::open(input_path)
             .map_err(|e| format!("Failed to open file '{}': {}", file.name, e))?;
         let mut reader = BufReader::new(input_file);
-        
+
         // 创建输出文件
         let output_file = File::create(&output_path)
             .map_err(|e| format!("Failed to create output file: {}", e))?;
         let mut writer = BufWriter::new(output_file);
-        
+
         // 使用策略模式进行解密
         let crypto_provider = create_crypto_provider(&settings.encryption_algorithm);
         crypto_provider.decrypt_stream(&settings.password, &mut reader, &mut writer)
             .map_err(|e| format!("Failed to decrypt file '{}': {}", file.name, e))?;
-        
+
         // 如果设置删除源文件
         if settings.delete_source {
             fs::remove_file(input_path)
@@ -171,8 +171,8 @@ impl CryptoEngine {
     /// 获取加密算法信息
     pub fn get_algorithm_info(settings: &Settings) -> String {
         let provider = create_crypto_provider(&settings.encryption_algorithm);
-        format!("Algorithm: {}, Chunk size: {} MB", 
-                provider.algorithm_name(), 
+        format!("Algorithm: {}, Chunk size: {} MB",
+                provider.algorithm_name(),
                 provider.chunk_size() / (1024 * 1024))
     }
     
