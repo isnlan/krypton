@@ -86,7 +86,7 @@ impl KryptonApp {
         };
 
         // Start async crypto operation
-        match CryptoEngine::start_operation_async(
+        match CryptoEngine::start_operation_async_static(
             self.settings.clone(),
             selected_files,
             Some(progress_callback),

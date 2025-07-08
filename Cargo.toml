@@ -19,6 +19,10 @@ path = "examples/async_crypto_demo.rs"
 name = "ui_progress_test"
 path = "examples/ui_progress_test.rs"
 
+[[example]]
+name = "thread_pool_demo"
+path = "examples/thread_pool_demo.rs"
+
 [dependencies]
 egui = "0.29.0"
 eframe = "0.29.0"
@@ -31,4 +35,5 @@ argon2 = "0.5"
 rand = "0.8"
 rayon = "1.8"
 hex = "0.4"
+threadpool = "1.8"
 

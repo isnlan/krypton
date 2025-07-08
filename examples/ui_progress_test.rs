@@ -74,7 +74,7 @@ fn test_async_progress_updates(test_dir: &str) -> Result<(), Box<dyn std::error:
     println!("  📊 开始异步加密操作...");
     
     // 启动异步加密
-    match CryptoEngine::start_operation_async(settings, selected_files, None) {
+    match CryptoEngine::start_operation_async_static(settings, selected_files, None) {
         Ok(mut handle) => {
             println!("  🚀 异步操作已启动");
             

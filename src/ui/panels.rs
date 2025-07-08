@@ -262,15 +262,6 @@ impl ProgressPanel {
                 ui.label(format!("{}/{}", progress.current_file_index + 1, progress.total_files));
             });
 
-            // Current file progress with percentage
-            let current_percentage = (progress.current_progress * 100.0) as u32;
-            ui.add(
-                egui::ProgressBar::new(progress.current_progress)
-                    .text(format!("Current File: {}%", current_percentage))
-            );
-
-            ui.separator();
-
             // Overall progress with percentage
             let total_percentage = (progress.total_progress * 100.0) as u32;
             ui.add(

@@ -101,7 +101,7 @@ fn demo_async_encryption(test_dir: &str) -> Result<(), Box<dyn std::error::Error
     
     // 启动异步加密
     let start_time = std::time::Instant::now();
-    match CryptoEngine::start_operation_async(settings, selected_files, Some(progress_callback)) {
+    match CryptoEngine::start_operation_async_static(settings, selected_files, Some(progress_callback)) {
         Ok(handle) => {
             println!("  🚀 异步操作已启动");
             
@@ -158,7 +158,7 @@ fn demo_progress_reporting(test_dir: &str) -> Result<(), Box<dyn std::error::Err
     });
     
     // 启动异步加密
-    match CryptoEngine::start_operation_async(settings, selected_files, Some(progress_callback)) {
+    match CryptoEngine::start_operation_async_static(settings, selected_files, Some(progress_callback)) {
         Ok(handle) => {
             println!("  🚀 带进度报告的异步操作已启动");
             
@@ -212,7 +212,7 @@ fn demo_operation_cancellation(test_dir: &str) -> Result<(), Box<dyn std::error:
     });
     
     // 启动异步加密
-    match CryptoEngine::start_operation_async(settings, selected_files, Some(progress_callback)) {
+    match CryptoEngine::start_operation_async_static(settings, selected_files, Some(progress_callback)) {
         Ok(handle) => {
             println!("  🚀 异步操作已启动，将在1秒后取消");
             

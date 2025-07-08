@@ -148,7 +148,7 @@ fn demo_full_encryption_workflow() -> Result<(), Box<dyn std::error::Error>> {
         
         // 执行加密
         let start_time = std::time::Instant::now();
-        match CryptoEngine::start_operation(&settings, &selected_files) {
+        match CryptoEngine::start_operation_static(&settings, &selected_files) {
             Ok(_) => {
                 let duration = start_time.elapsed();
                 println!("  ✅ 加密完成，耗时: {:?}", duration);
@@ -165,7 +165,7 @@ fn demo_full_encryption_workflow() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 
                 let decrypt_start = std::time::Instant::now();
-                match CryptoEngine::start_operation(&settings, &decrypt_files) {
+                match CryptoEngine::start_operation_static(&settings, &decrypt_files) {
                     Ok(_) => {
                         let decrypt_duration = decrypt_start.elapsed();
                         println!("  ✅ 解密完成，耗时: {:?}", decrypt_duration);

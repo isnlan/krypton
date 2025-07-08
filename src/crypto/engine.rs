@@ -11,13 +11,30 @@ use std::thread;
 use rayon::prelude::*;
 use rand::RngCore;
 use aes_gcm::aead::OsRng;
+use threadpool::ThreadPool;
 
-/// 重构后的加密引擎，使用策略模式
-pub struct CryptoEngine;
+/// 重构后的加密引擎，使用策略模式和线程池
+pub struct CryptoEngine {
+    thread_pool: Arc<ThreadPool>,
+}
 
 impl CryptoEngine {
+    /// 创建新的加密引擎实例
+    pub fn new(max_threads: usize) -> Self {
+        let thread_pool = ThreadPool::new(max_threads);
+        Self {
+            thread_pool: Arc::new(thread_pool),
+        }
+    }
+
+    /// 从设置创建加密引擎实例
+    pub fn from_settings(settings: &Settings) -> Self {
+        Self::new(settings.max_threads as usize)
+    }
+
     /// 开始异步加密/解密操作
     pub fn start_operation_async(
+        &self,
         settings: Settings,
         files: Vec<FileItem>,
         progress_callback: Option<ProgressCallback>,
@@ -69,16 +86,18 @@ impl CryptoEngine {
         let should_stop_clone = should_stop.clone();
         let should_skip_clone = should_skip.clone();
         let status_clone = status.clone();
+        let thread_pool_clone = self.thread_pool.clone();
 
         // 启动工作线程
         let thread_handle = thread::spawn(move || {
-            Self::process_files_async(
+            Self::process_files_async_with_pool(
                 &settings,
                 &selected_files,
                 should_stop_clone,
                 should_skip_clone,
                 status_clone,
                 progress_tracker,
+                thread_pool_clone,
             )
         });
 
@@ -92,8 +111,9 @@ impl CryptoEngine {
         })
     }
 
-    /// 同步版本的开始加密/解密操作（保持向后兼容）
+    /// 同步版本的开始加密/解密操作（实例方法）
     pub fn start_operation(
+        &self,
         settings: &Settings,
         files: &[FileItem],
     ) -> Result<(), String> {
@@ -113,7 +133,7 @@ impl CryptoEngine {
 
         // 根据是否启用多线程决定处理方式
         if settings.max_threads > 1 {
-            Self::process_files_parallel(settings, &selected_files)
+            self.process_files_with_pool(settings, &selected_files)
         } else {
             Self::process_files_sequential(settings, &selected_files)
         }
@@ -134,7 +154,7 @@ impl CryptoEngine {
         Ok(())
     }
     
-    /// 并行处理文件
+    /// 并行处理文件（使用 rayon，保持向后兼容）
     fn process_files_parallel(settings: &Settings, files: &[&FileItem]) -> Result<(), String> {
         let results: Vec<Result<(), String>> = files.par_iter()
             .map(|file| {
@@ -157,7 +177,148 @@ impl CryptoEngine {
         Ok(())
     }
 
-    /// 异步处理文件（带进度回调和取消支持）
+    /// 使用线程池处理文件
+    fn process_files_with_pool(&self, settings: &Settings, files: &[&FileItem]) -> Result<(), String> {
+        use std::sync::mpsc;
+
+        let (tx, rx) = mpsc::channel();
+
+        // 为每个文件提交任务到线程池
+        for file in files {
+            let tx = tx.clone();
+            let settings = settings.clone();
+            let file = (*file).clone();
+
+            self.thread_pool.execute(move || {
+                let result = match settings.operation_mode {
+                    OperationMode::Encrypt => {
+                        Self::encrypt_file(&settings, &file)
+                    }
+                    OperationMode::Decrypt => {
+                        Self::decrypt_file(&settings, &file)
+                    }
+                };
+                tx.send(result).unwrap();
+            });
+        }
+
+        // 等待所有任务完成并收集结果
+        drop(tx); // 关闭发送端
+        for _ in 0..files.len() {
+            match rx.recv() {
+                Ok(result) => result?,
+                Err(_) => return Err("Failed to receive result from thread pool".to_string()),
+            }
+        }
+
+        Ok(())
+    }
+
+    /// 异步处理文件（带进度回调和取消支持，使用线程池）
+    fn process_files_async_with_pool(
+        settings: &Settings,
+        files: &[FileItem],
+        should_stop: Arc<AtomicBool>,
+        should_skip: Arc<AtomicBool>,
+        status: Arc<Mutex<OperationStatus>>,
+        progress_tracker: ProgressTracker,
+        thread_pool: Arc<ThreadPool>,
+    ) -> Result<(), String> {
+        use std::sync::mpsc;
+
+        let (tx, rx) = mpsc::channel();
+        let mut pending_tasks = 0;
+
+        for (index, file) in files.iter().enumerate() {
+            // 检查是否应该停止
+            if should_stop.load(std::sync::atomic::Ordering::Relaxed) {
+                *status.lock().unwrap() = OperationStatus::Cancelled;
+                return Err("Operation cancelled".to_string());
+            }
+
+            // 获取当前文件大小
+            let current_file_size = fs::metadata(&file.path)
+                .map(|m| m.len())
+                .unwrap_or(0);
+
+            // 开始处理文件
+            progress_tracker.start_file(index, file.name.clone(), current_file_size);
+
+            // 提交任务到线程池
+            let tx = tx.clone();
+            let settings = settings.clone();
+            let file = file.clone();
+            let should_stop_clone = should_stop.clone();
+            let should_skip_clone = should_skip.clone();
+
+            thread_pool.execute(move || {
+                // 在任务执行前再次检查是否应该停止
+                if should_stop_clone.load(std::sync::atomic::Ordering::Relaxed) {
+                    tx.send((index, Err("Operation cancelled".to_string()))).unwrap();
+                    return;
+                }
+
+                // 检查是否跳过当前文件
+                if should_skip_clone.load(std::sync::atomic::Ordering::Relaxed) {
+                    should_skip_clone.store(false, std::sync::atomic::Ordering::Relaxed);
+                    tx.send((index, Ok(()))).unwrap();
+                    return;
+                }
+
+                // 处理单个文件
+                let result = match settings.operation_mode {
+                    OperationMode::Encrypt => {
+                        Self::encrypt_file(&settings, &file)
+                    }
+                    OperationMode::Decrypt => {
+                        Self::decrypt_file(&settings, &file)
+                    }
+                };
+
+                tx.send((index, result)).unwrap();
+            });
+
+            pending_tasks += 1;
+        }
+
+        // 等待所有任务完成
+        drop(tx); // 关闭发送端
+        for _ in 0..pending_tasks {
+            match rx.recv() {
+                Ok((index, result)) => {
+                    // 检查是否应该停止
+                    if should_stop.load(std::sync::atomic::Ordering::Relaxed) {
+                        *status.lock().unwrap() = OperationStatus::Cancelled;
+                        return Err("Operation cancelled".to_string());
+                    }
+
+                    // 处理结果
+                    if let Err(e) = result {
+                        *status.lock().unwrap() = OperationStatus::Failed(e.clone());
+                        return Err(e);
+                    }
+
+                    // 完成文件处理
+                    if let Some(file) = files.get(index) {
+                        let file_size = fs::metadata(&file.path)
+                            .map(|m| m.len())
+                            .unwrap_or(0);
+                        progress_tracker.complete_file(file_size);
+                    }
+                }
+                Err(_) => {
+                    *status.lock().unwrap() = OperationStatus::Failed("Failed to receive result from thread pool".to_string());
+                    return Err("Failed to receive result from thread pool".to_string());
+                }
+            }
+        }
+
+        // 操作完成
+        *status.lock().unwrap() = OperationStatus::Completed;
+        Ok(())
+    }
+
+    /// 异步处理文件（带进度回调和取消支持，原始版本，保持向后兼容）
     fn process_files_async(
         settings: &Settings,
         files: &[FileItem],
@@ -325,6 +486,25 @@ impl CryptoEngine {
         provider.verify_password(&settings.password, &file_data[0..64])
     }
     
+    /// 静态方法：同步版本的开始加密/解密操作（保持向后兼容）
+    pub fn start_operation_static(
+        settings: &Settings,
+        files: &[FileItem],
+    ) -> Result<(), String> {
+        let engine = Self::from_settings(settings);
+        engine.start_operation(settings, files)
+    }
+
+    /// 静态方法：开始异步加密/解密操作（保持向后兼容）
+    pub fn start_operation_async_static(
+        settings: Settings,
+        files: Vec<FileItem>,
+        progress_callback: Option<ProgressCallback>,
+    ) -> Result<OperationHandle, String> {
+        let engine = Self::from_settings(&settings);
+        engine.start_operation_async(settings, files, progress_callback)
+    }
+
     /// 停止操作（向后兼容方法）
     /// 注意：这个方法只是为了向后兼容，新的异步操作应该使用 OperationHandle::stop()
     pub fn stop_operation() {
