@@ -1,7 +1,7 @@
 use krypton::core::FileManager;
 use krypton::crypto::{CryptoEngine, create_crypto_provider, encrypt_stream, decrypt_stream};
 use krypton::crypto::traits::CryptoProvider;
-use krypton::models::{FileItem, Settings, OperationMode, EncryptionAlgorithm};
+use krypton::models::{Settings, OperationMode, EncryptionAlgorithm};
 use std::fs;
 use std::io::Cursor;
 
@@ -117,10 +117,8 @@ fn demo_full_encryption_workflow() -> Result<(), Box<dyn std::error::Error>> {
     }
     
     // 测试不同的加密算法
-    let algorithms = vec![
-        EncryptionAlgorithm::AES256,
-        EncryptionAlgorithm::ChaCha20,
-    ];
+    let algorithms = [EncryptionAlgorithm::AES256,
+        EncryptionAlgorithm::ChaCha20];
     
     for (i, algorithm) in algorithms.iter().enumerate() {
         println!("\n🔐 测试算法 {}: {:?}", i + 1, algorithm);

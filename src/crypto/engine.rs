@@ -316,7 +316,7 @@ impl CryptoEngine {
     pub fn verify_password(settings: &Settings, file_path: &std::path::Path) -> CryptoResult<bool> {
         let provider = create_crypto_provider(&settings.encryption_algorithm);
         let file_data = fs::read(file_path)
-            .map_err(|e| CryptoError::IoError(e))?;
+            .map_err(CryptoError::IoError)?;
         
         if file_data.len() < 32 {
             return Ok(false); // File too small to be a valid encrypted file

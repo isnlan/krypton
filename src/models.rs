@@ -125,6 +125,7 @@ pub struct Settings {
 
 /// 文件管理结构体
 #[derive(Debug, Clone)]
+#[derive(Default)]
 pub struct FileManagerState {
     pub left_directory: String,
     pub right_directory: String,
@@ -150,6 +151,7 @@ pub struct ProgressState {
 
 /// 对话框状态结构体
 #[derive(Debug, Clone)]
+#[derive(Default)]
 pub struct DialogState {
     pub show_error_dialog: bool,
     pub show_complete_dialog: bool,
@@ -170,16 +172,6 @@ impl Default for Settings {
     }
 }
 
-impl Default for FileManagerState {
-    fn default() -> Self {
-        Self {
-            left_directory: String::new(),
-            right_directory: String::new(),
-            left_files: Vec::new(),
-            right_files: Vec::new(),
-        }
-    }
-}
 
 impl Default for ProgressState {
     fn default() -> Self {
@@ -199,15 +191,6 @@ impl Default for ProgressState {
     }
 }
 
-impl Default for DialogState {
-    fn default() -> Self {
-        Self {
-            show_error_dialog: false,
-            show_complete_dialog: false,
-            error_message: String::new(),
-        }
-    }
-}
 
 impl FileItem {
     pub fn new(path: PathBuf, name: String) -> Self {

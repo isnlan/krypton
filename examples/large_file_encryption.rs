@@ -1,7 +1,6 @@
 use krypton::core::FileManager;
 use krypton::crypto::CryptoEngine;
-use krypton::models::{FileItem, Settings, OperationMode, EncryptionAlgorithm};
-use std::path::PathBuf;
+use krypton::models::{Settings, OperationMode, EncryptionAlgorithm};
 use std::fs;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
