@@ -11,6 +11,14 @@ path = "examples/large_file_encryption.rs"
 name = "crypto_architecture_demo"
 path = "examples/crypto_architecture_demo.rs"
 
+[[example]]
+name = "async_crypto_demo"
+path = "examples/async_crypto_demo.rs"
+
+[[example]]
+name = "ui_progress_test"
+path = "examples/ui_progress_test.rs"
+
 [dependencies]
 egui = "0.29.0"
 eframe = "0.29.0"

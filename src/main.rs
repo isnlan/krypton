@@ -3,6 +3,7 @@ mod core;
 mod crypto;
 mod ui;
 mod app;
+mod progress;
 
 use app::KryptonApp;
 use eframe::egui;

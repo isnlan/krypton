@@ -1,5 +1,6 @@
 use eframe::egui;
 use crate::models::{OperationMode, EncryptionAlgorithm, AppState, Settings, FileManagerState, ProgressState};
+use crate::progress::ProgressFormatter;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum PanelEvent {
@@ -249,20 +250,67 @@ impl ProgressPanel {
             ui.label("Progress");
             ui.separator();
 
-            // Current file progress
+            // Current file information
             ui.horizontal(|ui| {
                 ui.label("Current File: ");
                 ui.label(&progress.current_file_name);
             });
-            ui.add(egui::ProgressBar::new(progress.current_progress).text("Current Progress"));
+
+            // File count information
+            ui.horizontal(|ui| {
+                ui.label("Files: ");
+                ui.label(format!("{}/{}", progress.current_file_index + 1, progress.total_files));
+            });
+
+            // Current file progress with percentage
+            let current_percentage = (progress.current_progress * 100.0) as u32;
+            ui.add(
+                egui::ProgressBar::new(progress.current_progress)
+                    .text(format!("Current File: {}%", current_percentage))
+            );
 
             ui.separator();
 
-            // Overall progress
-            ui.label("Overall Progress: ");
-            ui.add(egui::ProgressBar::new(progress.total_progress).text("Total Progress"));
+            // Overall progress with percentage
+            let total_percentage = (progress.total_progress * 100.0) as u32;
+            ui.add(
+                egui::ProgressBar::new(progress.total_progress)
+                    .text(format!("Overall: {}%", total_percentage))
+            );
+
+            ui.separator();
+
+            // Speed and time information
+            ui.horizontal(|ui| {
+                ui.label("Speed: ");
+                ui.label(ProgressFormatter::format_speed(progress.speed_mbps));
+            });
+
+            ui.horizontal(|ui| {
+                ui.label("Elapsed: ");
+                ui.label(ProgressFormatter::format_time(progress.elapsed_time));
+            });
+
+            if progress.estimated_remaining > 0.0 && progress.total_progress < 1.0 {
+                ui.horizontal(|ui| {
+                    ui.label("Remaining: ");
+                    ui.label(ProgressFormatter::format_time(progress.estimated_remaining));
+                });
+            }
+
+            // Data size information
+            ui.horizontal(|ui| {
+                ui.label("Data: ");
+                ui.label(format!(
+                    "{} / {}",
+                    ProgressFormatter::format_bytes(progress.processed_bytes),
+                    ProgressFormatter::format_bytes(progress.total_bytes)
+                ));
+            });
         });
     }
+
+
 }
 
 pub struct ControlPanel;
