@@ -8,7 +8,7 @@ use std::path::PathBuf;
 use std::fs;
 use std::sync::{Arc, atomic::AtomicBool, Mutex, mpsc};
 use std::thread;
-use rayon::prelude::*;
+
 use rand::RngCore;
 use aes_gcm::aead::OsRng;
 use threadpool::ThreadPool;
@@ -153,29 +153,7 @@ impl CryptoEngine {
         }
         Ok(())
     }
-    
-    /// 并行处理文件（使用 rayon，保持向后兼容）
-    fn process_files_parallel(settings: &Settings, files: &[&FileItem]) -> Result<(), String> {
-        let results: Vec<Result<(), String>> = files.par_iter()
-            .map(|file| {
-                match settings.operation_mode {
-                    OperationMode::Encrypt => {
-                        Self::encrypt_file(settings, file)
-                    }
-                    OperationMode::Decrypt => {
-                        Self::decrypt_file(settings, file)
-                    }
-                }
-            })
-            .collect();
 
-        // 检查是否有错误
-        for result in results {
-            result?;
-        }
-
-        Ok(())
-    }
 
     /// 使用线程池处理文件
     fn process_files_with_pool(&self, settings: &Settings, files: &[&FileItem]) -> Result<(), String> {
@@ -318,60 +296,7 @@ impl CryptoEngine {
         Ok(())
     }
 
-    /// 异步处理文件（带进度回调和取消支持，原始版本，保持向后兼容）
-    fn process_files_async(
-        settings: &Settings,
-        files: &[FileItem],
-        should_stop: Arc<AtomicBool>,
-        should_skip: Arc<AtomicBool>,
-        status: Arc<Mutex<OperationStatus>>,
-        progress_tracker: ProgressTracker,
-    ) -> Result<(), String> {
-        for (index, file) in files.iter().enumerate() {
-            // 检查是否应该停止
-            if should_stop.load(std::sync::atomic::Ordering::Relaxed) {
-                *status.lock().unwrap() = OperationStatus::Cancelled;
-                return Err("Operation cancelled".to_string());
-            }
 
-            // 获取当前文件大小
-            let current_file_size = fs::metadata(&file.path)
-                .map(|m| m.len())
-                .unwrap_or(0);
-
-            // 开始处理文件
-            progress_tracker.start_file(index, file.name.clone(), current_file_size);
-
-            // 处理单个文件
-            let result = match settings.operation_mode {
-                OperationMode::Encrypt => {
-                    Self::encrypt_file(settings, file)
-                }
-                OperationMode::Decrypt => {
-                    Self::decrypt_file(settings, file)
-                }
-            };
-
-            // 检查是否跳过当前文件
-            if should_skip.load(std::sync::atomic::Ordering::Relaxed) {
-                should_skip.store(false, std::sync::atomic::Ordering::Relaxed);
-                continue;
-            }
-
-            // 处理结果
-            if let Err(e) = result {
-                *status.lock().unwrap() = OperationStatus::Failed(e.clone());
-                return Err(e);
-            }
-
-            // 完成文件处理
-            progress_tracker.complete_file(current_file_size);
-        }
-
-        // 操作完成
-        *status.lock().unwrap() = OperationStatus::Completed;
-        Ok(())
-    }
     
     /// 加密单个文件
     fn encrypt_file(settings: &Settings, file: &FileItem) -> Result<(), String> {
@@ -505,19 +430,5 @@ impl CryptoEngine {
         engine.start_operation_async(settings, files, progress_callback)
     }
 
-    /// 停止操作（向后兼容方法）
-    /// 注意：这个方法只是为了向后兼容，新的异步操作应该使用 OperationHandle::stop()
-    pub fn stop_operation() {
-        // 在新的异步架构中，停止操作通过 OperationHandle 来控制
-        // 这个方法保留用于向后兼容
-        println!("Warning: stop_operation() is deprecated. Use OperationHandle::stop() instead.");
-    }
 
-    /// 跳过当前任务（向后兼容方法）
-    /// 注意：这个方法只是为了向后兼容，新的异步操作应该使用 OperationHandle::skip_current()
-    pub fn skip_current_task() {
-        // 在新的异步架构中，跳过任务通过 OperationHandle 来控制
-        // 这个方法保留用于向后兼容
-        println!("Warning: skip_current_task() is deprecated. Use OperationHandle::skip_current() instead.");
-    }
 } 

@@ -132,7 +132,7 @@ cargo run --example crypto_architecture_demo
 - **aes-gcm** (0.10) - AES-GCM 认证加密
 - **chacha20poly1305** (0.10) - ChaCha20-Poly1305 加密
 - **argon2** (0.5) - 密码哈希算法
-- **rayon** (1.8) - 数据并行处理
+
 - **rfd** (0.15) - 原生文件对话框
 
 ## 🤝 贡献指南
