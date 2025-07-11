@@ -271,26 +271,24 @@ impl ProgressPanel {
 
             ui.separator();
 
-            // Speed and time information
+            // Speed and time information in one row
             ui.horizontal(|ui| {
                 ui.label("Speed: ");
                 ui.label(ProgressFormatter::format_speed(progress.speed_mbps));
-            });
-
-            ui.horizontal(|ui| {
+                
+                ui.separator();
+                
                 ui.label("Elapsed: ");
                 ui.label(ProgressFormatter::format_time(progress.elapsed_time));
-            });
-
-            if progress.estimated_remaining > 0.0 && progress.total_progress < 1.0 {
-                ui.horizontal(|ui| {
+                
+                if progress.estimated_remaining > 0.0 && progress.total_progress < 1.0 {
+                    ui.separator();
                     ui.label("Remaining: ");
                     ui.label(ProgressFormatter::format_time(progress.estimated_remaining));
-                });
-            }
-
-            // Data size information
-            ui.horizontal(|ui| {
+                }
+                
+                ui.separator();
+                
                 ui.label("Data: ");
                 ui.label(format!(
                     "{} / {}",
